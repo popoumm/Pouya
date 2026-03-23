@@ -1,0 +1,90 @@
+import React, { createContext, useContext, useState, useEffect } from 'react';
+import { UserRole } from '../types';
+
+interface ThemeContextType {
+  bgImage: string;
+  setBgImage: (url: string) => void;
+  accentColor: string;
+  setAccentColor: (color: string) => void;
+  glassOpacity: number;
+  setGlassOpacity: (opacity: number) => void;
+  siteName: string;
+  setSiteName: (name: string) => void;
+  heroTitle: string;
+  setHeroTitle: (title: string) => void;
+  heroSubtitle: string;
+  setHeroSubtitle: (subtitle: string) => void;
+  heroDescription: string;
+  setHeroDescription: (desc: string) => void;
+  userRole: UserRole;
+  setUserRole: (role: UserRole) => void;
+}
+
+const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
+
+export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [bgImage, setBgImage] = useState<string>(() => localStorage.getItem('app-bg-image') || '');
+  const [accentColor, setAccentColor] = useState<string>(() => localStorage.getItem('app-accent-color') || '#FFD700');
+  const [glassOpacity, setGlassOpacity] = useState<number>(() => Number(localStorage.getItem('app-glass-opacity')) || 0.03);
+  
+  const [siteName, setSiteName] = useState<string>(() => localStorage.getItem('app-site-name') || 'PM Holding');
+  const [heroTitle, setHeroTitle] = useState<string>(() => localStorage.getItem('app-hero-title') || 'مدیریت هوشمند دارایی‌های');
+  const [heroSubtitle, setHeroSubtitle] = useState<string>(() => localStorage.getItem('app-hero-subtitle') || 'دیجیتال و طلا');
+  const [heroDescription, setHeroDescription] = useState<string>(() => localStorage.getItem('app-hero-desc') || 'اکوسیستم پیشرفته برای تبادل طلا، ارزهای دیجیتال و خدمات کارگزاری با امنیت سطح بانکی و رابط کاربری مدرن.');
+  const [userRole, setUserRole] = useState<UserRole>(() => (localStorage.getItem('app-user-role') as UserRole) || UserRole.SUPER_ADMIN);
+
+  useEffect(() => {
+    localStorage.setItem('app-bg-image', bgImage);
+    localStorage.setItem('app-accent-color', accentColor);
+    localStorage.setItem('app-glass-opacity', String(glassOpacity));
+    localStorage.setItem('app-site-name', siteName);
+    localStorage.setItem('app-hero-title', heroTitle);
+    localStorage.setItem('app-hero-subtitle', heroSubtitle);
+    localStorage.setItem('app-hero-desc', heroDescription);
+    localStorage.setItem('app-user-role', userRole);
+    
+    document.documentElement.style.setProperty('--gold-primary', accentColor);
+    document.documentElement.style.setProperty('--gold-glow', `${accentColor}26`); // 15% opacity
+    document.documentElement.style.setProperty('--glass-bg', `rgba(255, 255, 255, ${glassOpacity})`);
+    document.documentElement.style.setProperty('--glass-border', `rgba(255, 255, 255, ${glassOpacity * 2.5})`);
+  }, [bgImage, accentColor, glassOpacity, siteName, heroTitle, heroSubtitle, heroDescription]);
+
+  return (
+    <ThemeContext.Provider value={{ 
+      bgImage, setBgImage, 
+      accentColor, setAccentColor,
+      glassOpacity, setGlassOpacity,
+      siteName, setSiteName,
+      heroTitle, setHeroTitle,
+      heroSubtitle, setHeroSubtitle,
+      heroDescription, setHeroDescription,
+      userRole, setUserRole
+    }}>
+      <div className="relative min-h-screen w-full">
+        {bgImage && (
+          <div className="fixed inset-0 z-0 overflow-hidden pointer-events-none">
+            <div 
+              className="absolute inset-0 bg-cover bg-center bg-no-repeat transition-opacity duration-700"
+              style={{ 
+                backgroundImage: `url("${bgImage}")`,
+                opacity: 0.8
+              }}
+            />
+            <div className="absolute inset-0 bg-black/30 backdrop-blur-[1px]" />
+          </div>
+        )}
+        <div className="relative z-10 min-h-screen w-full">
+          {children}
+        </div>
+      </div>
+    </ThemeContext.Provider>
+  );
+};
+
+export const useTheme = () => {
+  const context = useContext(ThemeContext);
+  if (context === undefined) {
+    throw new Error('useTheme must be used within a ThemeProvider');
+  }
+  return context;
+};

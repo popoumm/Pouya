@@ -1,0 +1,11 @@
+export enum UserRole {
+  SUPER_ADMIN = 'SUPER_ADMIN', // مدیریت کل - دسترسی به همه چیز از جمله سود و زیان
+  ADMIN = 'ADMIN',             // مدیر - دسترسی به مدیریت اما بدون مشاهده سود و زیان
+  TRADER = 'TRADER'            // کاربر معامله‌گر - کاربر عادی
+}
+
+export interface User {
+  id: string;
+  name: string;
+  role: UserRole;
+}
